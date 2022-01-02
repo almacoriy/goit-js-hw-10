@@ -15,16 +15,16 @@ refs.input.addEventListener('input', debounce(fetchCountries, DEBOUNCE_DELAY));
 
 function fetchCountries(e) {
   e.preventDefault();
-  let country = e.target.value.trim();
 
-  if (country === '') {
+  const searchForm = e.target.value.trim();
+  const url = `https://restcountries.com/v3.1/name/${searchForm}?fields=name,capital,population,flags,languages`;
+
+  if (searchForm === '') {
     onCleaningMarkup();
     return;
   }
 
-  fetch(
-    `https://restcountries.com/v3.1/name/${country}?fields=name,capital,population,flags,languages`,
-  )
+  fetch(url)
     .then(response => {
       if (!response.ok) {
         throw new Notiflix.Notify.failure('Oops, there is no country with that name');
