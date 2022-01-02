@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce';
 import Notiflix from 'notiflix';
 import './css/styles.css';
-// import fetchCountries from './fetchCountries';
+import CountryApiService from './components/country-service';
 
 const DEBOUNCE_DELAY = 300;
 
@@ -10,41 +10,37 @@ const refs = {
   list: document.querySelector('.country-list'),
   info: document.querySelector('.country-info'),
 };
+const countryApiService = new CountryApiService();
 
-refs.input.addEventListener('input', debounce(fetchCountries, DEBOUNCE_DELAY));
+refs.input.addEventListener('input', debounce(onSearch, DEBOUNCE_DELAY));
 
-function fetchCountries(e) {
+function onSearch(e) {
   e.preventDefault();
 
-  const searchForm = e.target.value.trim();
-  const url = `https://restcountries.com/v3.1/name/${searchForm}?fields=name,capital,population,flags,languages`;
+  countryApiService.form = e.target.value.trim();
 
-  if (searchForm === '') {
-    onCleaningMarkup();
-    return;
-  }
+  onCleaningMarkup();
 
-  fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Notiflix.Notify.failure('Oops, there is no country with that name');
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.length > 10) {
+  if (countryApiService.form) {
+    countryApiService
+      .fetchCountries()
+      .then(response => {
+        if (!response.ok) {
+          throw new Notiflix.Notify.failure('Oops, there is no country with that name');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 10) {
+          return Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
+        }
+        if ((data.length > 1) & (data.length < 11)) {
+          return onRenderCountryList(data);
+        }
         onCleaningMarkup();
-        return Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
-      }
-      if ((data.length > 1) & (data.length < 11)) {
-        return onRenderCountryList(data);
-      }
-      onRenderCountryInfo(data);
-    })
-    .catch(error => {
-      onCleaningMarkup();
-      return Notiflix.Notify.warning('Something went wrong, try again');
-    });
+        onRenderCountryInfo(data);
+      });
+  }
 }
 
 function onRenderCountryInfo(item) {
@@ -64,8 +60,6 @@ function onRenderCountryInfo(item) {
     })
     .join('');
 
-  onCleaningMarkup();
-
   //  Делаем новую разметку
   refs.info.insertAdjacentHTML('beforeend', countryInfo);
 }
@@ -79,8 +73,6 @@ function onRenderCountryList(items) {
               </li>`;
     })
     .join('');
-
-  onCleaningMarkup();
 
   //  Делаем новую разметку
   refs.list.insertAdjacentHTML('beforeend', countryList);
