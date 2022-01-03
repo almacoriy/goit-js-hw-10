@@ -37,7 +37,6 @@ function onSearch(e) {
         if ((data.length > 1) & (data.length < 11)) {
           return onRenderCountryList(data);
         }
-        onCleaningMarkup();
         onRenderCountryInfo(data);
       });
   }
