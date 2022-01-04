@@ -8,7 +8,8 @@ export default class CountryApiService {
 
     return fetch(url)
       .then(response => response)
-      .then(data => data);
+      .then(data => data)
+      .catch(error => error);
   }
   get form() {
     return this.searchForm;
